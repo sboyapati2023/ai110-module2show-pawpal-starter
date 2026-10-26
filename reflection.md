@@ -7,6 +7,16 @@
 - Briefly describe your initial UML design.
 - What classes did you include, and what responsibilities did you assign to each?
 
+- Add pet class. Attributes: name, breed/species, age, owner (reference or string).
+- Add owner class. Attributes: title, category (e.g., walk, feeding, meds, grooming), duration (in minutes, required), priority (e.g., High, Medium, Low, required), preferred_time (optional), is_recurring (optional).
+- Add task class. Attributes: name, time_available_today (total minutes they can spend on pet care), preferences (e.g., preferred walk windows).
+- Add scheduler class creates schedules using pet, owner and tasks. Required actions/methods for scheduler: 
+  Scheduler Methods:
+    - sort_tasks(): Sorts the pet's task queue based on priority rules.
+	- generate_daily_plan(pet, owner): Evaluates constraints, fits tasks into the available time budget, drops or flags lower priority items if time runs out, and builds the finalized schedule.
+	- get_reasoning(): Returns a string explaining why items were selected or omitted.
+
+
 **b. Design changes**
 
 - Did your design change during implementation?
