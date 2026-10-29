@@ -4,9 +4,12 @@ classDiagram
     class Owner {
         +str name
         +int time_available_today
+        +str day_start
         +dict preferences
         +list~Pet~ pets
         +add_pet(pet: Pet) None
+        +get_pet(name: str) Pet
+        +get_all_tasks() list~Task~
     }
 
     class Pet {
@@ -17,30 +20,51 @@ classDiagram
         +Owner owner
         +list~Task~ tasks
         +add_task(task: Task) None
-        +remove_task(title: str) None
+        +remove_task(description: str) bool
+        +pending_tasks() list~Task~
     }
 
     class Task {
-        +str title
-        +str category
+        +str description
         +int duration
         +str priority
-        +str preferred_time
-        +bool is_recurring
+        +str time
+        +str frequency
+        +bool completed
+        +str category
+        +str pet_name
+        +date due_date
+        +int start_minutes  «property»
+        +str end_time  «property»
         +priority_rank() int
+        +mark_complete() None
+        +mark_incomplete() None
+        +next_occurrence() Task
+    }
+
+    class ScheduledTask {
+        +Task task
+        +str start
+        +str end
     }
 
     class Scheduler {
-        +list~Task~ scheduled
+        +Owner owner
+        +list~ScheduledTask~ plan
         +list~Task~ skipped
         +list~str~ reasons
+        +list~str~ conflicts
+        +filter_tasks(pet_name, completed, due_by) list~Task~
+        +mark_task_complete(task: Task) Task
         +sort_tasks(tasks: list~Task~) list~Task~
-        +generate_daily_plan(pet: Pet, owner: Owner) list~Task~
+        +sort_by_time(tasks: list~Task~) list~Task~
+        +detect_conflicts(day: date) list~str~
+        +generate_daily_plan(day: date) list~ScheduledTask~
         +get_reasoning() str
     }
 
     Owner "1" --> "*" Pet : owns
     Pet "1" --> "*" Task : needs
-    Scheduler ..> Owner : reads time budget and preferences
-    Scheduler ..> Pet : plans tasks for
-    Scheduler ..> Task : sorts and selects
+    Scheduler --> Owner : reads get_all_tasks()
+    Scheduler "1" --> "*" ScheduledTask : builds
+    ScheduledTask --> Task : places on the clock
