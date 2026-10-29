@@ -76,17 +76,49 @@ Paste a sample of your app's CLI or Streamlit output here so a reader can see wh
 
 ```bash
 # Run the full test suite:
-pytest
+python -m pytest
 
-# Run with coverage:
-pytest --cov
+# Show each test by name:
+python -m pytest -v
+
+# Run with coverage (needs: pip install pytest-cov):
+python -m pytest --cov
 ```
+
+The tests cover the scheduler's core behaviors: sorting tasks into time order, creating the next occurrence when a daily or weekly task is completed, detecting overlapping or duplicate task times, filtering tasks, and basic task and pet operations. All tests live in `tests/test_pawpal.py` and test the classes in `pawpal_system.py` directly, without the Streamlit UI.
+
+| Area | What the tests check |
+|------|----------------------|
+| Task basics | Marking a task complete changes its status; adding a task increases the pet's task count |
+| Sorting | `sort_by_time()` returns tasks in time order, even when added out of order or entered as `"8:00"`; tasks with no time go last |
+| Filtering | By pet name (case-insensitive), by completion status, both combined, no filters, and an unknown pet |
+| Recurrence | Completing a daily task adds a copy due the next day; weekly adds one due a week later; one-off tasks add nothing; completing twice doesn't duplicate; tomorrow's copy stays out of today's plan |
+| Conflict detection | The same time across different pets and for the same pet; partial overlaps; a long task overlapping several others; back-to-back tasks are not conflicts; completed and untimed tasks are ignored; `generate_daily_plan()` records conflicts |
 
 Sample test output:
 
 ```
-# Paste your pytest output here
+$ python -m pytest
+============================= test session starts ==============================
+collected 20 items
+
+tests/test_pawpal.py ....................                                [100%]
+
+============================== 20 passed in 0.02s ==============================
 ```
+
+**Known gaps.** Extra edge-case testing found cases the scheduler doesn't handle yet:
+
+- A low-priority task can push a high-priority one later.
+- Tasks with no set time are placed at the end of the day.
+- A plan can run past midnight.
+- Two daily tasks with the same name don't both recur.
+
+These aren't covered by the suite yet. See `reflection.md` for details.
+
+**Confidence Level: ⭐⭐⭐☆☆ (3/5)**
+
+All 20 tests pass, and the core behaviors are reliable for everyday use: sorting, the time budget, recurrence, conflict detection, and non-overlapping plans. I'm not giving it a higher rating because of the known gaps above, which can produce a plan with a high-priority task delayed or a recurring task missing. Fixing those and adding tests for them would raise it to 4–5 stars.
 
 ## 📐 Smarter Scheduling
 

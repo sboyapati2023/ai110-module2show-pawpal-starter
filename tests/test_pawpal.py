@@ -67,6 +67,33 @@ def test_filter_tasks_with_no_filters_or_unknown_pet():
     assert scheduler.filter_tasks(pet_name="Rex") == []
 
 
+def test_sort_by_time_returns_chronological_order():
+    scheduler = make_scheduler()
+    tasks = [
+        Task("Dinner", 10, "high", time="18:00"),
+        Task("Walk", 30, "high", time="07:30"),
+        Task("Meds", 5, "high", time="8:00"),  # no leading zero
+        Task("Lunch", 10, "medium", time="12:15"),
+    ]
+
+    times = [t.time for t in scheduler.sort_by_time(tasks)]
+
+    assert times == ["07:30", "08:00", "12:15", "18:00"]
+
+
+def test_sort_by_time_puts_untimed_tasks_last():
+    scheduler = make_scheduler()
+    tasks = [
+        Task("Play", 15, "medium"),  # no preferred time
+        Task("Dinner", 10, "high", time="18:00"),
+        Task("Walk", 30, "high", time="07:30"),
+    ]
+
+    names = [t.description for t in scheduler.sort_by_time(tasks)]
+
+    assert names == ["Walk", "Dinner", "Play"]
+
+
 def make_owner_with(task):
     """Owner with one pet that has the given task."""
     owner = Owner("Jordan", 60)
@@ -153,6 +180,18 @@ def test_detects_same_time_conflict_across_different_pets():
 
     assert len(conflicts) == 1
     assert "different pets" in conflicts[0]
+
+
+def test_detects_duplicate_time_for_same_pet():
+    scheduler = make_conflict_scheduler(
+        ("Luna", Task("Play session", 15, "medium", time="17:30")),
+        ("Luna", Task("Ear cleaning", 10, "medium", time="17:30")),
+    )
+
+    conflicts = scheduler.detect_conflicts()
+
+    assert len(conflicts) == 1
+    assert "same pet" in conflicts[0]
 
 
 def test_detects_overlap_for_same_pet():
